@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boutique Locale - Commande via WhatsApp</title>
+    <style>
+        /* --- RESET & BASE STYLES --- */
+        :root {
+            --primary-color: #25D366; /* WhatsApp Green */
+            --primary-dark: #128C7E;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+            --card-bg: #fff;
+            --radius: 12px;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        /* --- LAYOUT --- */
+        header {
+            background: var(--card-bg);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: var(--primary-dark); }
+        p.subtitle { color: #666; font-size: 0.95rem; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* --- PRODUCT GRID --- */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        /* --- PRODUCT CARD --- */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Media Container (Image or Video) */
+        .card-media {
+            position: relative;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background-color: #000;
+            overflow: hidden;
+        }
+
+        .card-media img,
+        .card-media iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: none;
+        }
+
+        .card-body {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .product-desc {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 15px;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        /* --- BUTTON --- */
+        .btn-whatsapp {
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-whatsapp:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .product-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>Ma Boutique Sénégalaise</h1>
+            <p class="subtitle">Sélectionnez un produit et commandez directement via WhatsApp</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- La grille des produits sera générée ici par JavaScript -->
+        <div id="product-container" class="product-grid"></div>
+    </main>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURATION DU COMMERÇANT
+        // ==========================================
+        
+        // Remplacez ce numéro par le vôtre (Format international sans le +, ex: 221 pour le Sénégal)
+        const MERCHANT_PHONE = "221770000000"; 
+
+        // ==========================================
+        // 2. BASE DE DONNÉES DES PRODUITS
+        // ==========================================
+        
+        const products = [
+            {
+                id: 1,
+                type: "image", // Type : 'image' ou 'video'
+                title: "Tissu Wax Hollandais Premium",
+                description: "6 yards de tissu wax de haute qualité, motifs uniques. Disponible immédiatement.",
+                price: 25000,
+                // Pour une image, mettez l'URL directe.
+                mediaUrl: "https://picsum.photos/seed/wax/600/400", 
+                thumbnailUrl: "https://picsum.photos/seed/wax/600/400" // Utilisé pour le message WhatsApp
+            },
+            {
+                id: 2,
+                type: "video", // Type : 'video' pour YouTube
+                title: "Formation : Pâtisserie Sénégalaise",
+                description: "Vidéo complète de 2h pour apprendre à faire les meilleurs thiakry et gâteaux locaux.",
+                price: 5000,
+                // Pour une vidéo YouTube, mettez l'URL complète de la vidéo.
+                mediaUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 
+                thumbnailUrl: "https://picsum.photos/seed/patisserie/600/400" // Image de prévisualisation
+            },
+            {
+                id: 3,
+                type: "image",
+                title: "Huile de Karité Pur",
+                description: "500ml d'huile de karité 100% naturelle, produite dans la région de Tambacounda.",
+                price: 8000,
+                mediaUrl: "https://picsum.photos/seed/karite/600/400",
+                thumbnailUrl: "https://picsum.photos/seed/karite/600/400"
+            }
+        ];
+
+        // ==========================================
+        // 3. LOGIQUE DE L'APPLICATION
+        // ==========================================
+
+        const container = document.getElementById('product-container');
+
+        // Fonction utilitaire pour formater le prix en XOF
+        function formatPrice(price) {
+            return new Intl.NumberFormat('fr-SN', { 
+                style: 'currency', 
+                currency: 'XOF',
+                minimumFractionDigits: 0 
+            }).format(price).replace('XOF', 'FCFA');
+        }
+
+        // Fonction pour extraire l'ID YouTube d'une URL
+        function getYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // Fonction pour générer le lien WhatsApp
+        function createWhatsAppLink(product) {
+            const greeting = "Bonjour, je souhaite commander ce produit :";
+            const productInfo = `Titre: ${product.title}`;
+            const priceInfo = `Prix: ${formatPrice(product.price)}`;
+            // Note: On envoie le lien de l'image/vidéo pour que le vendeur voie quoi ça ressemble
+            const linkInfo = `Lien: ${product.thumbnailUrl}`;
+            
+            // On assemble tout
+            const text = `${greeting}\n\n${productInfo}\n${priceInfo}\n\n${linkInfo}`;
+            
+            // Encodage pour l'URL
+            const encodedText = encodeURIComponent(text);
+            
+            return `https://wa.me/${MERCHANT_PHONE}?text=${encodedText}`;
+        }
+
+        // Fonction principale de rendu
+        function renderProducts() {
+            products.forEach(product => {
+                const article = document.createElement('article');
+                article.className = 'card';
+
+                // Gestion du media (Image vs Video YouTube)
+                let mediaContent = '';
+                if (product.type === 'video') {
+                    const videoId = getYoutubeId(product.mediaUrl);
+                    if (videoId) {
+                        mediaContent = `<iframe src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    } else {
+                        // Fallback si l'ID n'est pas trouvé
+                        mediaContent = `<img src="${product.thumbnailUrl}" alt="Erreur vidéo">`;
+                    }
+                } else {
+                    mediaContent = `<img src="${product.mediaUrl}" alt="${product.title}">`;
+                }
+
+                // Création du lien WhatsApp
+                const whatsappUrl = createWhatsAppLink(product);
+
+                // Injection HTML
+                article.innerHTML = `
+                    <div class="card-media">
+                        ${mediaContent}
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <h2 class="product-title">${product.title}</h2>
+                            <p class="product-desc">${product.description}</p>
+                        </div>
+                        <div class="product-footer">
+                            <span class="price">${formatPrice(product.price)}</span>
+                            <a href="${whatsappUrl}" target="_blank" class="btn-whatsapp">
+                                <svg class="btn-icon" viewBox="0 0 24 24">
+                                    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z" />
+                                </svg>
+                                Commander
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(article);
+            });
+        }
+
+        // Lancement au chargement de la page
+        document.addEventListener('DOMContentLoaded', renderProducts);
+
+    </script>
+</body>
+</html>
